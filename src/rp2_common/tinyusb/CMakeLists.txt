@@ -25,6 +25,20 @@ if (EXISTS ${PICO_TINYUSB_PATH}/${TINYUSB_TEST_PATH})
 
     add_library(tinyusb_common INTERFACE)
     target_link_libraries(tinyusb_common INTERFACE tinyusb_common_base)
+    target_include_directories(tinyusb_common INTERFACE
+            ${PICO_TINYUSB_PATH}/src
+            ${PICO_TINYUSB_PATH}/src/common
+            ${PICO_TINYUSB_PATH}/hw
+            ${PICO_TINYUSB_PATH}/lib/networking
+    )
+    target_sources(tinyusb_common INTERFACE
+            ${PICO_TINYUSB_PATH}/src/tusb.c
+            ${PICO_TINYUSB_PATH}/src/device/usbd.c
+            ${PICO_TINYUSB_PATH}/src/class/net/ncm_device.c
+            ${PICO_TINYUSB_PATH}/src/portable/raspberrypi/rp2040/dcd_rp2040.c
+            ${PICO_TINYUSB_PATH}/src/device/usbd_control.c
+            ${PICO_TINYUSB_PATH}/src/common/tusb_fifo.c
+    )
 
     add_library(tinyusb_device_unmarked INTERFACE)
     target_link_libraries(tinyusb_device_unmarked INTERFACE tinyusb_device_base)
@@ -39,11 +53,18 @@ if (EXISTS ${PICO_TINYUSB_PATH}/${TINYUSB_TEST_PATH})
     pico_add_impl_library(tinyusb_device)
     target_link_libraries(tinyusb_device INTERFACE tinyusb_device_unmarked)
 
-    pico_add_impl_library(tinyusb_host)
+    add_library(tinyusb_host INTERFACE)
     target_link_libraries(tinyusb_host INTERFACE tinyusb_host_base tinyusb_common)
+    target_sources(tinyusb_host INTERFACE
+            ${PICO_TINYUSB_PATH}/lib/networking/dhserver.c
+            ${PICO_TINYUSB_PATH}/lib/networking/dnserver.c
+            )
 
     pico_add_impl_library(tinyusb_board)
     target_link_libraries(tinyusb_board INTERFACE tinyusb_bsp)
+
+    pico_add_impl_library(tinyusb_net)
+    target_link_libraries(tinyusb_net INTERFACE tinyusb_bsp)
 
     # Override suppress_tinyusb_warnings to add suppression of (falsely) reported GCC 11.2 warnings
     function(suppress_tinyusb_warnings)
